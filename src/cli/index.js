@@ -629,8 +629,13 @@ async function start(): Promise<void> {
     const opts = {stdio: 'inherit', env: Object.assign({}, process.env, {YARN_IGNORE_PATH: 1})};
     let exitCode = 0;
 
+    process.on(`SIGINT`, () => {
+      // We don't want SIGINT to kill our process; we want it to kill the
+      // innermost process, whose end will cause our own to exit.
+    });
+
     try {
-      if (yarnPath.endsWith(`.js`)) {
+      if (/\.[cm]?js$/.test(yarnPath)) {
         exitCode = await spawnp(process.execPath, [yarnPath, ...argv], opts);
       } else {
         exitCode = await spawnp(yarnPath, argv, opts);
